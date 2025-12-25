@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.18)
+# compile_commands.json 생성 옵션 추가
+cmake_minimum_required(VERSION 3.27)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(GPU_IN_ACTION LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -10,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_OPENCL "Use OpenCL backend" OFF)
 option(USE_CUDA   "Use CUDA backend" OFF)
 option(USE_CUDA_STATIC "Link static cudart instead of shared library" OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 #option(USE_VULKAN "Use Vulkan backend" OFF)
 
 if(NOT DEFINED LOG_LEVEL)

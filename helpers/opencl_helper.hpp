@@ -1,5 +1,4 @@
 #pragma once
-#ifdef USE_OPENCL
 
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
@@ -34,13 +33,18 @@ const char* get_cl_error_string(cl_int err) {
     }
 }
 
-#ifndef CHECK_CL(err) \ 
 #define CHECK_CL(err) \
     if (err != CL_SUCCESS) { \
         std::cerr << "OpenCL Error: " << get_cl_error_string(err) << " (" << err << ") at " << __FILE__ << ":" << __LINE__ << std::endl; \
         exit(EXIT_FAILURE); \
     }
-#endif
+
+
+#define CHECK_CL_ERROR(err, msg) \
+    if (err != CL_SUCCESS) { \
+        std::printf("code : %d, message : %s", err, msg); \
+        exit(EXIT_FAILURE); \
+    }
 
 std::string read_kernel_file(const char* file_path) {
     std::ifstream file(file_path);
@@ -73,5 +77,3 @@ std::string read_kernel_file(const char* file_path) {
     clReleaseCommandQueue(queue); \
     clReleaseContext(context);
 
-
-#endif

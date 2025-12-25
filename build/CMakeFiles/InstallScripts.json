@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/cmake_install.cmake",
+		"/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

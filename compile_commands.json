@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/terrapin/workspace/personal/Graphics/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o -c /Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
+  "file": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
+  "output": "examples/CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o"
+}
+]

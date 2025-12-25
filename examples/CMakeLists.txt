@@ -1,6 +1,11 @@
+# helpers 디렉터리의 hpp 파일을 모두 포함
+file(GLOB HELPERS_HEADERS
+    ${CMAKE_SOURCE_DIR}/helpers/*.hpp
+)
+
 set(EXAMPLE_LISTS
-    "1.vector-add"
-    "2.elemental-wise-vec-mul"
+   "1.vector-add",
+   "2.reduce-sum",
 )
 
 foreach(EXAMPLE ${EXAMPLE_LISTS})
@@ -30,7 +35,7 @@ foreach(EXAMPLE ${EXAMPLE_LISTS})
 
         if(OPENCL_SRC)
             set(OPENCL_EXE ${EXAMPLE_NAME}_OPENCL)
-            add_executable(${OPENCL_EXE} ${OPENCL_SRC})
+            add_executable(${OPENCL_EXE} ${OPENCL_SRC} ${HELPERS_HEADERS})
             target_link_libraries(${OPENCL_EXE} PRIVATE GPGPUBackend GPGPUHelpers)
             set_target_properties(${OPENCL_EXE} PROPERTIES
                 RUNTIME_OUTPUT_DIRECTORY ${EXAMPLE_BUILD_DIR}
@@ -66,7 +71,7 @@ foreach(EXAMPLE ${EXAMPLE_LISTS})
 
         if(CUDA_SRC)
             set(CUDA_EXE ${EXAMPLE_NAME}_CUDA)
-            add_executable(${CUDA_EXE} ${CUDA_SRC})
+            add_executable(${CUDA_EXE} ${CUDA_SRC} ${HELPERS_HEADERS})
 
             # 백엔드 + helper 전달
             target_link_libraries(${CUDA_EXE} PRIVATE GPGPUBackend GPGPUHelpers)

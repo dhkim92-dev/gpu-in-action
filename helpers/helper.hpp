@@ -50,3 +50,12 @@ constexpr LogLevel CURRENT_LOG_LEVEL =
         std::printf("[BENCH][%s:%d] %s : %.3f ms\n",                   \
             __FILE__, __LINE__, #expr, __bench_ms);                     \
     } while (0)
+
+
+void init_random_values_f32(float* data, int size) 
+{
+    for (int i = 0; i < size; ++i) 
+    {
+        data[i] = static_cast<float>(rand()) / RAND_MAX;
+    }
+}
