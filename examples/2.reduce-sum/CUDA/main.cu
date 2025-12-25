@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "helper.hpp"
+#include "cuda_helper.hpp"
 
 // Kernel is defined in kernel.cu and linked in.
 extern "C" __global__ void reduce_sum(const float* input, float* output, int n);

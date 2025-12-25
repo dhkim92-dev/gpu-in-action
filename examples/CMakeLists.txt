@@ -60,7 +60,7 @@ foreach(EXAMPLE ${EXAMPLE_LISTS})
     # CUDA Example
     # =========================
     if(USE_CUDA AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${EXAMPLE}/CUDA)
-
+        
         file(GLOB CUDA_SRC
             ${CMAKE_CURRENT_SOURCE_DIR}/${EXAMPLE}/CUDA/*.cu
             ${CMAKE_CURRENT_SOURCE_DIR}/${EXAMPLE}/CUDA/*.cpp
@@ -72,7 +72,6 @@ foreach(EXAMPLE ${EXAMPLE_LISTS})
         if(CUDA_SRC)
             set(CUDA_EXE ${EXAMPLE_NAME}_CUDA)
             add_executable(${CUDA_EXE} ${CUDA_SRC} ${HELPERS_HEADERS})
-
             # 백엔드 + helper 전달
             target_link_libraries(${CUDA_EXE} PRIVATE GPGPUBackend GPGPUHelpers)
             set_target_properties(${CUDA_EXE} PROPERTIES
