@@ -81,7 +81,7 @@ int main()
     cuda_check(cudaMemcpy(&h_output, d_in, sizeof(float), cudaMemcpyDeviceToHost), "cudaMemcpy(h_output, d_in)");
     float host_sum_result = 0.0f;
     BENCHMARK_START(cpu_reduce_sum) 
-    host_sum_result = host_reduce_sum(h_input, static_cast<int>(input_size);
+    host_sum_result = host_reduce_sum(h_input, static_cast<int>(input_size));
     BENCHMARK_END(cpu_reduce_sum)
 
     LOG_INFO("Reduction Sum CPU Result: %f", host_sum_result);

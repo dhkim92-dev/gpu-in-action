@@ -8,7 +8,7 @@
 #include <cstring>
 
 namespace gpgpu_detail {
-inline bool rand_seeded = false;
+    bool rand_seeded = false;
 }
 
 #ifndef LOG_LEVEL

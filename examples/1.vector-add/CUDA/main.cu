@@ -2,7 +2,7 @@
 #include <vector>
 #include <iomanip>
 #include <cuda_runtime.h>
-#include "helper.hpp"
+//#include "helper.hpp"
 
 __global__ void vector_add(const float* A, const float* B, float* C, int N) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
