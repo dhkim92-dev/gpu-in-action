@@ -82,8 +82,8 @@ void gpu_square(
     size_t n
 ) {
     size_t sz_blk = 256;
-    size_t num_blocks = (n + sz_blk - 1) / sz_blk;
-    square<<<num_blocks, sz_blk>>>(d_input, d_output, n);
+    size_t nr_threads = (n + sz_blk - 1) / sz_blk;
+    square<<<nr_threads, sz_blk>>>(d_input, d_output, n);
     cuda_check(cudaGetLastError(), "Kernel launch square");
 }
 
@@ -93,10 +93,17 @@ void gpu_reduce(
     size_t n
 ) {
     size_t sz_blk = 256;
-    size_t num_blocks = (n + sz_blk * 2 - 1) / (sz_blk * 2);
-    size_t shared_mem_size = sizeof(float) * sz_blk;
-    reduce<<<num_blocks, sz_blk, shared_mem_size>>>(d_input, d_output, n);
-    cuda_check(cudaGetLastError(), "Kernel launch reduce");
+    size_t nr_threads = (n + sz_blk * 2 - 1) / (sz_blk * 2);
+    size_t sz_shm = sizeof(float) * sz_blk;
+
+    while ( n > 1 ) {
+        nr_threads = (n + sz_blk * 2 - 1) / (sz_blk * 2);
+        size_t nr_blk = (n + sz_blk - 1) / sz_blk;
+        reduce<<<nr_threads, sz_blk, sz_shm>>>(d_input, d_output, n);
+        cuda_check(cudaGetLastError(), "Kernel launch reduce");
+        n = nr_blk;
+        std::swap(d_input, d_output);
+    }
 }
 
 void gpu_normalize(
@@ -106,8 +113,8 @@ void gpu_normalize(
     size_t n
 ) {
     size_t sz_blk = 256;
-    size_t num_blocks = (n + sz_blk - 1) / sz_blk;
-    normalize<<<num_blocks, sz_blk>>>(d_input, d_output, d_square_sum, n);
+    size_t nr_threads = (n + sz_blk - 1) / sz_blk;
+    normalize<<<nr_threads, sz_blk>>>(d_input, d_output, d_square_sum, n);
     cuda_check(cudaGetLastError(), "Kernel launch normalize");
 }
 
