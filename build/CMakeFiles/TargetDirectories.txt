@@ -1,8 +1,6 @@
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/CMakeFiles/edit_cache.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/CMakeFiles/rebuild_cache.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/CMakeFiles/vector-add_OPENCL.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/CMakeFiles/copy_vector-add_OPENCL_cl.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/CMakeFiles/reduce-sum_OPENCL.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/CMakeFiles/copy_reduce-sum_OPENCL_cl.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/CMakeFiles/edit_cache.dir
-/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples/CMakeFiles/rebuild_cache.dir
+/workspace/build/CMakeFiles/edit_cache.dir
+/workspace/build/CMakeFiles/rebuild_cache.dir
+/workspace/build/examples/CMakeFiles/vector-add_CUDA.dir
+/workspace/build/examples/CMakeFiles/reduce-sum_CUDA.dir
+/workspace/build/examples/CMakeFiles/edit_cache.dir
+/workspace/build/examples/CMakeFiles/rebuild_cache.dir

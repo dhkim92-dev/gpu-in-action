@@ -1,1 +1,0 @@
-/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/reduce-sum_OPENCL.dir/2.reduce-sum/OpenCL/main.cpp.o" -o 2.reduce-sum/reduce-sum_OPENCL  -framework OpenCL

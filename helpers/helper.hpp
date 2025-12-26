@@ -1,6 +1,9 @@
 #pragma once
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstddef>
 #include <cstring>
 
 #ifndef LOG_LEVEL

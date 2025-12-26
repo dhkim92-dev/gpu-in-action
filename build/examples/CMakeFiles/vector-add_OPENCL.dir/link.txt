@@ -1,1 +1,0 @@
-/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o" -o 1.vector-add/vector-add_OPENCL  -framework OpenCL

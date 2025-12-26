@@ -1,14 +1,14 @@
 [
 {
-  "directory": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples",
-  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/terrapin/workspace/personal/Graphics/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o -c /Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
-  "file": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
-  "output": "examples/CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o"
+  "directory": "/workspace/build/examples",
+  "command": "/usr/local/cuda-10.2/bin/nvcc -forward-unknown-to-host-compiler -DLOG_LEVEL=1 -DUSE_CUDA -DUSE_CUDA_STATIC -I/usr/local/cuda/include -I/workspace/helpers -std=c++14 \"--generate-code=arch=compute_30,code=[compute_30,sm_30]\" -x cu -c /workspace/examples/1.vector-add/CUDA/main.cu -o CMakeFiles/vector-add_CUDA.dir/1.vector-add/CUDA/main.cu.o",
+  "file": "/workspace/examples/1.vector-add/CUDA/main.cu",
+  "output": "examples/CMakeFiles/vector-add_CUDA.dir/1.vector-add/CUDA/main.cu.o"
 },
 {
-  "directory": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples",
-  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/terrapin/workspace/personal/Graphics/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o CMakeFiles/reduce-sum_OPENCL.dir/2.reduce-sum/OpenCL/main.cpp.o -c /Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/2.reduce-sum/OpenCL/main.cpp",
-  "file": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/2.reduce-sum/OpenCL/main.cpp",
-  "output": "examples/CMakeFiles/reduce-sum_OPENCL.dir/2.reduce-sum/OpenCL/main.cpp.o"
+  "directory": "/workspace/build/examples",
+  "command": "/usr/local/cuda-10.2/bin/nvcc -forward-unknown-to-host-compiler -DLOG_LEVEL=1 -DUSE_CUDA -DUSE_CUDA_STATIC -I/usr/local/cuda/include -I/workspace/helpers -std=c++14 \"--generate-code=arch=compute_30,code=[compute_30,sm_30]\" -x cu -c /workspace/examples/2.reduce-sum/CUDA/main.cu -o CMakeFiles/reduce-sum_CUDA.dir/2.reduce-sum/CUDA/main.cu.o",
+  "file": "/workspace/examples/2.reduce-sum/CUDA/main.cu",
+  "output": "examples/CMakeFiles/reduce-sum_CUDA.dir/2.reduce-sum/CUDA/main.cu.o"
 }
 ]

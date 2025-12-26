@@ -1,12 +1,44 @@
 #include <cuda_runtime.h>
 #include <iostream>
 #include <utility>
+#include <cstddef>
 
 #include "helper.hpp"
 #include "cuda_helper.hpp"
 
-// Kernel is defined in kernel.cu and linked in.
-extern "C" __global__ void reduce_sum(const float* input, float* output, int n);
+__global__ void reduce_sum(
+    const float* __restrict__ input,
+    float* __restrict__ output,
+    int n
+) {
+	extern __shared__ float sdata[];
+
+	const int tid = (int)threadIdx.x;
+	const int gid = blockIdx.x * blockDim.x * 2 + threadIdx.x;
+	float sum = 0.0f;
+
+	if (gid < n) {
+		sum = input[gid];
+	}
+	if (gid + blockDim.x < n) {
+		sum += input[gid + blockDim.x];
+	}
+	sdata[tid] = sum;
+	__syncthreads();
+
+	// Reduction in shared memory
+	for (int stride = ((int)blockDim.x) / 2; stride > 0; stride >>= 1) {
+		if (tid < stride) {
+			sdata[tid] += sdata[tid + stride];
+		}
+		__syncthreads();
+	}
+
+	if (tid == 0) {
+		output[(int)blockIdx.x] = sdata[0];
+	}
+}
+
 
 static float host_reduce_sum(const float* data, size_t size)
 {
@@ -25,31 +57,31 @@ int main()
     const size_t sz_shmem = sizeof(float) * sz_blk;
 
     float* h_input = new float[input_size];
-    init_random_inputs_f32(h_input, input_size);
+    init_random_values_f32(h_input, input_size);
 
     float *d_in = nullptr;
     float *d_out = nullptr;
 
-    cuda_check(cudaMalloc((void**)&d_in, sz_mem_input));
-    cuda_check(cudaMalloc((void**)&d_out, sz_mem_input));
-    cuda_check(cudaMemcpy(d_in, h_input, sz_mem_input, cudaMemcpyHostToDevice));
+    cuda_check(cudaMalloc((void**)&d_in, sz_mem_input), "cudaMalloc(&d_in, sz_mem_input)");
+    cuda_check(cudaMalloc((void**)&d_out, sz_mem_input), "cudaMalloc(&d_out, sz_memb_input)");
+    cuda_check(cudaMemcpy(d_in, h_input, sz_mem_input, cudaMemcpyHostToDevice), "cudaMemcpy(d_in, d_out)");
 
-    size_t nr_blk = (input_size + (sz_blk * 2 - 1)) / (sz_blk * 2);
-
+    size_t current_n = input_size;
     BENCHMARK_START(cuda_reduce_sum)
-    while (nr_blk > 1) {
-        reduce_sum<<<nr_blk, sz_blk, sz_shmem>>>(d_in, d_out, static_cast<int>(input_size));
-        cuda_check(cudaGetLastError());
+    while (current_n > 1) {
+        size_t nr_blk = (current_n + (sz_blk * 2 - 1)) / (sz_blk * 2);
+        size_t nr_works= nr_blk * sz_blk;
+        reduce_sum<<<nr_works, sz_blk, sz_shmem>>>(d_in, d_out, static_cast<int>(current_n));
+        cuda_check(cudaGetLastError(), "kernel launch");
         std::swap(d_in, d_out);
-        input_size = nr_blk;
-        nr_blk = (input_size + (sz_blk * 2 - 1)) / (sz_blk * 2);
+        current_n = nr_blk;
     }
-    BENCHMARK_END(cuda_reduce_sum);
+    BENCHMARK_END(cuda_reduce_sum)
     float h_output = 0.0f;
-    cuda_check(cudaMemcpy(&h_output, d_in, sizeof(float), cudaMemcpyDeviceToHost));
+    cuda_check(cudaMemcpy(&h_output, d_in, sizeof(float), cudaMemcpyDeviceToHost), "cudaMemcpy(h_output, d_in)");
     float host_sum_result = 0.0f;
     BENCHMARK_START(cpu_reduce_sum) 
-    host_sum_result = host_reduce_sum(h_input, static_cast<int>(input_size));
+    host_sum_result = host_reduce_sum(h_input, static_cast<int>(input_size);
     BENCHMARK_END(cpu_reduce_sum)
 
     LOG_INFO("Reduction Sum CPU Result: %f", host_sum_result);
