@@ -1,4 +1,5 @@
 #include <cuda_runtime.h>
+#include <algorithm>
 #include "cuda_helper.hpp"
 #include "helper.hpp"
 
@@ -34,13 +35,11 @@ __global__ void reduce(
     __syncthreads();
 
     // Reduction in shared memory
-    size_t i = blockDim.x / 2;
-    while (i != 0) {
-        if (lid < i) {
-            cache[lid] += cache[lid + i];
+    for (int offset = lsz / 2 ; offset > 0 ; offset>>=1 ) {
+        if (lid < offset) {
+            cache[lid] += cache[lid + offset];
         }
         __syncthreads();
-        i /= 2;
     }
 
     if (lid == 0) {
@@ -82,27 +81,26 @@ void gpu_square(
     size_t n
 ) {
     size_t sz_blk = 256;
-    size_t nr_threads = (n + sz_blk - 1) / sz_blk;
-    square<<<nr_threads, sz_blk>>>(d_input, d_output, n);
+    size_t nr_blk = (n + sz_blk - 1) / sz_blk;
+
+    square<<<nr_blk, sz_blk>>>(d_input, d_output, n);
     cuda_check(cudaGetLastError(), "Kernel launch square");
 }
 
 void gpu_reduce(
-    const float* d_input,
-    float* d_output,
+    float* &d_input,
+    float* &d_output,
     size_t n
 ) {
     size_t sz_blk = 256;
-    size_t nr_threads = (n + sz_blk * 2 - 1) / (sz_blk * 2);
+    size_t nr_blk = (n + sz_blk * 2 - 1) / (sz_blk * 2);
     size_t sz_shm = sizeof(float) * sz_blk;
-
     while ( n > 1 ) {
-        nr_threads = (n + sz_blk * 2 - 1) / (sz_blk * 2);
-        size_t nr_blk = (n + sz_blk - 1) / sz_blk;
-        reduce<<<nr_threads, sz_blk, sz_shm>>>(d_input, d_output, n);
+        nr_blk = (n + sz_blk*2 - 1) / (sz_blk*2);
+        reduce<<<nr_blk, sz_blk, sz_shm>>>(d_input, d_output, n);
         cuda_check(cudaGetLastError(), "Kernel launch reduce");
-        n = nr_blk;
         std::swap(d_input, d_output);
+        n = nr_blk;
     }
 }
 
@@ -113,8 +111,8 @@ void gpu_normalize(
     size_t n
 ) {
     size_t sz_blk = 256;
-    size_t nr_threads = (n + sz_blk - 1) / sz_blk;
-    normalize<<<nr_threads, sz_blk>>>(d_input, d_output, d_square_sum, n);
+    size_t nr_blk = (n + sz_blk - 1) / sz_blk;
+    normalize<<<nr_blk, sz_blk>>>(d_input, d_output, d_square_sum, n);
     cuda_check(cudaGetLastError(), "Kernel launch normalize");
 }
 
@@ -122,7 +120,6 @@ int main(void)
 {
     size_t n = 1 << 20; // 1M elements
     size_t sz_mem = sizeof(float) * n;
-    size_t sz_blk = 256; // must be <= device max threads per block
 
     float* h_input = new float[n];
     float* h_output_gpu = new float[n];
@@ -163,6 +160,7 @@ int main(void)
         }
         if (std::fabs(h_output_gpu[i] - h_output_cpu[i]) > 1e-5f) {
             LOG_ERROR("Mismatch at index %zu: GPU=%f, CPU=%f", i, h_output_gpu[i], h_output_cpu[i]);
+            break;
         }
     }
 
