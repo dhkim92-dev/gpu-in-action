@@ -62,12 +62,9 @@ constexpr LogLevel CURRENT_LOG_LEVEL =
 
 void init_random_values_f32(float* data, int size) 
 {
-    // If user didn't call seed_rand_*(), auto-seed once.
-    if (!gpgpu_detail::rand_seeded) {
+    if (gpgpu_detail::rand_seeded) {
         std::srand(static_cast<unsigned int>(std::time(nullptr)));
-        gpgpu_detail::rand_seeded = true;
     }
-
     for (int i = 0; i < size; ++i) 
     {
         data[i] = static_cast<float>(rand()) / RAND_MAX;

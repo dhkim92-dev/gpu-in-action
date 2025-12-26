@@ -7,6 +7,7 @@ set(EXAMPLE_LISTS
    "1.vector-add",
    "2.reduce-sum",
     "3.dot-product",
+    "4.vector-normalization"
 )
 
 foreach(EXAMPLE ${EXAMPLE_LISTS})
