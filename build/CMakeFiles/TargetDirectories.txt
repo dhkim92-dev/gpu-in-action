@@ -1,6 +1,0 @@
-/workspace/build/CMakeFiles/edit_cache.dir
-/workspace/build/CMakeFiles/rebuild_cache.dir
-/workspace/build/examples/CMakeFiles/vector-add_CUDA.dir
-/workspace/build/examples/CMakeFiles/reduce-sum_CUDA.dir
-/workspace/build/examples/CMakeFiles/edit_cache.dir
-/workspace/build/examples/CMakeFiles/rebuild_cache.dir
