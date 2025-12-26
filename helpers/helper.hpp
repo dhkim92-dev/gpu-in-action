@@ -2,9 +2,14 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+
+namespace gpgpu_detail {
+inline bool rand_seeded = false;
+}
 
 #ifndef LOG_LEVEL
 #define LOG_LEVEL 1  // default = INFO
@@ -57,10 +62,28 @@ constexpr LogLevel CURRENT_LOG_LEVEL =
 
 void init_random_values_f32(float* data, int size) 
 {
+    // If user didn't call seed_rand_*(), auto-seed once.
+    if (!gpgpu_detail::rand_seeded) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        gpgpu_detail::rand_seeded = true;
+    }
+
     for (int i = 0; i < size; ++i) 
     {
         data[i] = static_cast<float>(rand()) / RAND_MAX;
     }
+}
+
+inline void seed_rand_u32(unsigned int seed)
+{
+    std::srand(seed);
+    gpgpu_detail::rand_seeded = true;
+}
+
+inline void seed_rand_time()
+{
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    gpgpu_detail::rand_seeded = true;
 }
 
 #define BENCHMARK_START(func_name) {                                               \

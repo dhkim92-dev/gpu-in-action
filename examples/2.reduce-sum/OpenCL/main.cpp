@@ -102,6 +102,11 @@ int main(void)
     LOG_INFO("Reduction Sum CPU Result: %f", host_sum_result);
     LOG_INFO("Reduction Sum CL Result: %f", h_output);
 
+    clReleaseMemObject(d_input);
+    clReleaseMemObject(d_output);
+    clReleaseKernel(kernel);
+    clReleaseProgram(program);
+    delete[] h_input;
     CL_CONTEXT_CLEANUP
     return 0;
 }

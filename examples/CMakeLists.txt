@@ -6,6 +6,7 @@ file(GLOB HELPERS_HEADERS
 set(EXAMPLE_LISTS
    "1.vector-add",
    "2.reduce-sum",
+    "3.dot-product",
 )
 
 foreach(EXAMPLE ${EXAMPLE_LISTS})
