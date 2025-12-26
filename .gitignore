@@ -1,4 +1,6 @@
 build
 build/**
+build_cuda/**
+build_cuda
 .DS_Store
 **/.DS_Store
