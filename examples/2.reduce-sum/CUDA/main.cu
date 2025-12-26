@@ -20,42 +20,41 @@ static float host_reduce_sum(const float* data, size_t size)
 int main()
 {
     const size_t input_size = 1024;
-    const int local_size = 32; // "local_size = 32float" -> 32 threads, 32 floats in shared
-    const size_t shared_bytes = (size_t)local_size * sizeof(float);
-    const size_t bytes = input_size * sizeof(float);
+    const size_t sz_mem_input = sizeof(float) * input_size;
+    const size_t sz_blk = 256;
+    const size_t sz_shmem = sizeof(float) * sz_blk;
 
     float* h_input = new float[input_size];
-    init_random_values_f32(h_input, (int)input_size);
-    // for (size_t i = 0; i < input_size; ++i) h_input[i] = (float)(i + 1);
+    init_random_inputs_f32(h_input, input_size);
 
-    float* d_a = nullptr;
-    float* d_b = nullptr;
-    cuda_check(cudaMalloc((void**)&d_a, bytes), "cudaMalloc(d_a)");
-    cuda_check(cudaMalloc((void**)&d_b, bytes), "cudaMalloc(d_b)");
-    cuda_check(cudaMemcpy(d_a, h_input, bytes, cudaMemcpyHostToDevice), "cudaMemcpy H2D");
+    float *d_in = nullptr;
+    float *d_out = nullptr;
 
-    float* d_in = d_a;
-    float* d_out = d_b;
-    size_t n = input_size;
+    cuda_check(cudaMalloc((void**)&d_in, sz_mem_input));
+    cuda_check(cudaMalloc((void**)&d_out, sz_mem_input));
+    cuda_check(cudaMemcpy(d_in, h_input, sz_mem_input, cudaMemcpyHostToDevice));
 
-    while (n > 1) {
-        const size_t blocks = (n + local_size - 1) / local_size;
-        reduce_sum<<<(unsigned)blocks, (unsigned)local_size, shared_bytes>>>(d_in, d_out, (int)n);
-        cuda_check(cudaGetLastError(), "reduce_sum launch");
-        cuda_check(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
+    size_t nr_blk = (input_size + (sz_blk * 2 - 1)) / (sz_blk * 2);
 
+    BENCHMARK_START(cuda_reduce_sum)
+    while (nr_blk > 1) {
+        reduce_sum<<<nr_blk, sz_blk, sz_shmem>>>(d_in, d_out, static_cast<int>(input_size));
+        cuda_check(cudaGetLastError());
         std::swap(d_in, d_out);
-        n = blocks;
+        input_size = nr_blk;
+        nr_blk = (input_size + (sz_blk * 2 - 1)) / (sz_blk * 2);
     }
-
+    BENCHMARK_END(cuda_reduce_sum);
     float h_output = 0.0f;
-    cuda_check(cudaMemcpy(&h_output, d_in, sizeof(float), cudaMemcpyDeviceToHost), "cudaMemcpy D2H");
+    cuda_check(cudaMemcpy(&h_output, d_in, sizeof(float), cudaMemcpyDeviceToHost));
+    float host_sum_result = 0.0f;
+    BENCHMARK_START(cpu_reduce_sum) 
+    host_sum_result = host_reduce_sum(h_input, static_cast<int>(input_size));
+    BENCHMARK_END(cpu_reduce_sum)
 
-    const float expected = host_reduce_sum(h_input, input_size);
-    std::cout << "GPU result: " << h_output << ", CPU result: " << expected << std::endl;
+    LOG_INFO("Reduction Sum CPU Result: %f", host_sum_result);
+    LOG_INFO("Reduction Sum CUDA Result: %f", h_output);
 
-    cudaFree(d_a);
-    cudaFree(d_b);
     delete[] h_input;
     return 0;
 }

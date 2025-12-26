@@ -1,8 +1,3 @@
-// NOTE:
-// - This kernel produces one partial sum per block: output[blockIdx.x].
-// - To get a single value, launch this kernel repeatedly (ping-pong buffers)
-//   until the number of blocks becomes 1, or do a final CPU sum.
-// - Declared extern "C" so cuModuleGetFunction("reduce_sum") works.
 
 #if defined(__CUDACC__) || defined(__CUDACC_RTC__)
 extern "C" __global__ void reduce_sum(
@@ -13,13 +8,16 @@ extern "C" __global__ void reduce_sum(
 	extern __shared__ float sdata[];
 
 	const int tid = (int)threadIdx.x;
-	const int gid = (int)blockIdx.x * (int)blockDim.x + tid;
+	const int gid = blockIdx.x * blockDim.x * 2 + threadIdx.x;
+	float sum = 0.0f;
 
-	float v = 0.0f;
 	if (gid < n) {
-		v = input[gid];
+		sum = input[gid];
 	}
-	sdata[tid] = v;
+	if (gid + blockDim.x < n) {
+		sum += input[gid + blockDim.x];
+	}
+	sdata[tid] = sum;
 	__syncthreads();
 
 	// Reduction in shared memory

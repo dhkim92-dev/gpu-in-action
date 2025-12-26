@@ -1,12 +1,6 @@
 #include "helper.hpp"
 #include "opencl_helper.hpp"
 
-static size_t round_up(size_t value, size_t multiple)
-{
-    if (multiple == 0) return value;
-    const size_t remainder = value % multiple;
-    return remainder == 0 ? value : (value + multiple - remainder);
-}
 
 float host_reduce_sum(const float* data, int size) 
 {
@@ -25,9 +19,9 @@ int main(void)
     float * h_input;
     float h_output;
 
-    const size_t input_size = 1024;
+    const size_t input_size = 1024; // In this example, input size always power of two.
     const size_t sz_mem_input = sizeof(float) * input_size;
-    const size_t sz_wg = 32; // local work-group size (must be <= device limit)
+    const size_t sz_wg = 256; // local work-group size (must be <= device limit)
     const size_t sz_mem_local = sizeof(float) * sz_wg;
 
     h_input = new float[input_size];
@@ -43,6 +37,7 @@ int main(void)
         h_input, 
         &err
     );
+
     CHECK_CL_ERROR(err, "Failed to create buffer for input data");
     cl_mem d_output = clCreateBuffer(
         context, 
@@ -66,9 +61,12 @@ int main(void)
 
     size_t call_count = 0;
     size_t current_n = input_size;
+
+    BENCHMARK_START(gpu_reduce_sum)
     while (current_n > 1) {
-        const size_t groups = (current_n + sz_wg - 1) / sz_wg; // output elements this pass
-        const size_t global_work_size = groups * sz_wg;        // must be multiple of local size
+        const size_t groups =
+            (current_n + (sz_wg * 2) - 1) / (sz_wg * 2);
+        const size_t global_work_size = groups * sz_wg;
         const int n_arg = static_cast<int>(current_n);
 
         err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_input);
@@ -76,14 +74,6 @@ int main(void)
         err |= clSetKernelArg(kernel, 2, sz_mem_local, nullptr);
         err |= clSetKernelArg(kernel, 3, sizeof(int), &n_arg);
         CHECK_CL_ERROR(err, "Failed to set kernel arguments");
-
-        std::cout << "Reduction step " << call_count++
-                  << ": N=" << current_n
-                  << " global_work_size=" << global_work_size
-                  << " local_work_size=" << sz_wg
-                  << " groups=" << groups
-                  << std::endl;
-
         err = clEnqueueNDRangeKernel(
             queue,
             kernel,
@@ -96,16 +86,20 @@ int main(void)
             nullptr
         );
         CHECK_CL_ERROR(err, "Failed to enqueue kernel");
-
-        // Next pass reduces the partial sums we just wrote
         std::swap(d_input, d_output);
         current_n = groups;
     }
+    BENCHMARK_END(gpu_reduce_sum)
 
     clFinish(queue);
 
+    float host_sum_result = 0.0f;
     clEnqueueReadBuffer(queue, d_input, CL_TRUE, 0, sizeof(float), &h_output, 0, nullptr, nullptr);
-    LOG_INFO("Reduction Sum CPU Result: %f", host_reduce_sum(h_input, static_cast<int>(input_size)));
+    BENCHMARK_START(cpu_reduce_sum)
+    host_sum_result = host_reduce_sum(h_input, static_cast<int>(input_size));
+    BENCHMARK_END(cpu_reduce_sum)
+
+    LOG_INFO("Reduction Sum CPU Result: %f", host_sum_result);
     LOG_INFO("Reduction Sum CL Result: %f", h_output);
 
     CL_CONTEXT_CLEANUP

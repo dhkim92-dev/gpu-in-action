@@ -59,3 +59,17 @@ void init_random_values_f32(float* data, int size)
         data[i] = static_cast<float>(rand()) / RAND_MAX;
     }
 }
+
+#define BENCHMARK_START(func_name) {                                               \
+        auto __bench_start_##func_name =                                           \
+        std::chrono::high_resolution_clock::now();
+
+#define BENCHMARK_END(func_name) \
+    auto __bench_end_##func_name =                                             \
+        std::chrono::high_resolution_clock::now();                           \
+    double __bench_ms_##func_name =                                          \
+        std::chrono::duration<double, std::milli>(                           \
+            __bench_end_##func_name - __bench_start_##func_name).count();    \
+    std::printf("[BENCH][%s:%d] %s : %.3f ms\n",                           \
+        __FILE__, __LINE__, #func_name, __bench_ms_##func_name);            \
+    }
