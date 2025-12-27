@@ -7,7 +7,7 @@ int scan1(int val,__local int* cache)
     lid += lsz;
     cache[lid] = val;
 
-    for (int offset = 1; offset < lsz * 2; offset <<= 1) {
+    for (int offset = 1; offset < lsz ; offset <<= 1) {
         barrier(CLK_LOCAL_MEM_FENCE);
         int t = cache[lid] + cache[lid - offset];
         barrier(CLK_LOCAL_MEM_FENCE);
@@ -20,17 +20,17 @@ __kernel void scan4(
     __global int4* src,
     __global int4* dst,
     __global int* gsum,
-    const int n
+    int n
 ) 
 {
     int id = get_global_id(0);
     if (id >= n) return;
 
     int4 data = src[id];
-    __local int cache[256];
+    __local int cache[128];
     data.y += data.x;
     data.z += data.y;
-    data.w = data.z;
+    data.w += data.z;
 
     int val = scan1(data.w, cache);
     dst[id] = data + (int4)(val - data.w);
@@ -46,10 +46,11 @@ __kernel void uniform_update(
 ) {
     int id = get_global_id(0);
     int gid = get_group_id(0);
-    if (gid == 0) return;
-    int4 val = output[id];
-    val += (int4)(group_sums[gid]);
-    output[id] = val;
+    if (gid != 0) {
+        int4 val = output[id];
+        val += group_sums[gid];
+        output[id] = val;
+    }
 }
 
 __kernel void scan_ed(

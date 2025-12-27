@@ -159,7 +159,6 @@ void h_prefixsum(int *src, int *dst, int n)
     for (int i = 0; i < n; i++) {
         sum += src[i];
         dst[i] = sum;
-        printf("h_psum[%d] = %d\n", i, dst[i]);
     }
 }
 
@@ -167,17 +166,17 @@ int main(void)
 {
     CL_CONTEXT_INIT
 
-    const int n = 1 << 8; // Always multiply of 64
+    const int n = 1 << 20;  
     const size_t sz_mem = sizeof(int) * n;
     const size_t lsz = 64;
     int* h_input = new int[n];
     int* h_output_gpu = new int[n];
     int* h_output_cpu = new int[n];
 
-    // init_random_values_i32(h_input, n);
-    for (int i = 0; i < n; ++i) {
-        h_input[i] = 1; // simple case
-    }
+    init_random_values_i32(h_input, n, 100);
+    // for (int i = 0; i < n; ++i) {
+        // h_input[i] = 1; // simple case
+    // }
     cl_mem d_input = clCreateBuffer(
         context,
         CL_MEM_READ_WRITE,
@@ -190,7 +189,7 @@ int main(void)
     cl_mem d_output = clCreateBuffer(
         context,
         CL_MEM_READ_WRITE,
-        sizeof(int) * (n + 1),
+        sizeof(int) * n,
         nullptr,
         &err
     );
@@ -264,7 +263,7 @@ int main(void)
         d_output,
         CL_TRUE,
         0,
-        sizeof(int) * (n + 1),
+        sizeof(int) * n,
         h_output_gpu,
         0,
         nullptr,
@@ -272,6 +271,7 @@ int main(void)
     ), "Failed to read output buffer");
     clFinish(queue);
     // Verify results
+
     bool match = true;
     for (int i = 0; i < n; ++i) {
         if (h_output_gpu[i] != h_output_cpu[i]) {
@@ -282,5 +282,21 @@ int main(void)
         }
     }
 
+    clReleaseKernel(k_scan4);
+    clReleaseKernel(k_scan_ed);
+    clReleaseKernel(k_uniform_update);
+    clReleaseProgram(program);
+    clReleaseMemObject(d_input);
+    clReleaseMemObject(d_output);
+    for (auto d_buf : d_grp_sums) {
+        if (d_buf != nullptr) {
+            clReleaseMemObject(d_buf);
+        }
+    }
+    delete[] h_input;
+    delete[] h_output_gpu;
+    delete[] h_output_cpu;
+
     CL_CONTEXT_CLEANUP
+    return 0;
 }

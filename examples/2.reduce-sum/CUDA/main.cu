@@ -87,6 +87,9 @@ int main()
     LOG_INFO("Reduction Sum CPU Result: %f", host_sum_result);
     LOG_INFO("Reduction Sum CUDA Result: %f", h_output);
 
+    cuda_check(cudaFree(d_in), "cudaFree d_in");
+    cuda_check(cudaFree(d_out), "cudaFree d_out");
+    
     delete[] h_input;
     return 0;
 }
