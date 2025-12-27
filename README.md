@@ -2,16 +2,14 @@
 
 `GPU in Action`은 GPGPU(General-purpose computing on graphics processing units)를 배우고자 하는 이들에게 다양한 예제를 통해 학습 자료를 제공합니다. 이 레포지토리는 CUDA와 OpenCL을 사용한 병렬 컴퓨팅 기법을 소개하고, 이를 실제로 구현하는 방법을 제공합니다.
 
----
-
 ## 목차
 
 | 제목 | 설명 |
 |------|------|
 | [1. vector-add](examples/1.vector-add/README.md) | 벡터 덧셈 예제 |
 | [2. reduce-sum](examples/2.reduce-sum/README.md) | 합계 축소 연산 예제 |
-
----
+| [3. dot-product](examples/3.dot-product/README.md) | 벡터 내적 예제 |
+| [4. vector-normalization](examples/4.vector-normalization/) | 벡터 정규화 예제 |
 
 ## 빌드 방법
 
@@ -39,5 +37,6 @@
    ```
 
 ---
-
+기본적인 GPGPU에 필요한 내용을 다루기는 하지만 언어의 사용법 등을 상세히 설명하는 자료는 아닙니다.  
+CUDA 또는 OpenCL 등의 고급 사용법은 다른 자료를 찾아주세요.  
 이 레포지토리는 지속적으로 업데이트될 예정입니다.
