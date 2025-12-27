@@ -1,11 +1,15 @@
 #pragma once
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <chrono>
 
 namespace gpgpu_detail {
     bool rand_seeded = false;
@@ -69,6 +73,17 @@ void init_random_values_f32(float* data, int size)
     {
         data[i] = static_cast<float>(rand()) / RAND_MAX;
     }
+}
+
+void init_random_values_i32(int* data, int size, int limit = 10) 
+{
+    if (gpgpu_detail::rand_seeded) {
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    }
+    for (int i = 0; i < size; ++i) 
+    {
+        data[i] = rand() % limit;  
+   }
 }
 
 inline void seed_rand_u32(unsigned int seed)

@@ -54,10 +54,7 @@ std::string read_kernel_file(const char* file_path) {
     }
     std::stringstream ss;
     ss << file.rdbuf();
-    std::string kernel_code = ss.str();
-    char* code_cstr = new char[kernel_code.size() + 1];
-    std::strcpy(code_cstr, kernel_code.c_str());
-    return code_cstr;
+    return ss.str();
 }
 
 #define CL_CONTEXT_INIT \
@@ -72,6 +69,17 @@ std::string read_kernel_file(const char* file_path) {
     CHECK_CL(err); \
     cl_command_queue queue = clCreateCommandQueue(context, device, 0, &err); \
     CHECK_CL(err);
+
+inline void check_program_build_result(cl_int err, cl_program program, cl_device_id device) {
+    if (err != CL_SUCCESS) {
+        size_t logSize = 0;
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &logSize);
+        std::vector<char> log(logSize);
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, logSize, log.data(), nullptr);
+        std::cerr << "Build log:\n" << log.data() << std::endl;
+        CHECK_CL(err);
+    }
+}
 
 #define CL_CONTEXT_CLEANUP \
     clReleaseCommandQueue(queue); \
