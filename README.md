@@ -9,7 +9,8 @@
 | [1. vector-add](examples/1.vector-add/README.md) | 벡터 덧셈 예제 |
 | [2. reduce-sum](examples/2.reduce-sum/README.md) | 합계 축소 연산 예제 |
 | [3. dot-product](examples/3.dot-product/README.md) | 벡터 내적 예제 |
-| [4. vector-normalization](examples/4.vector-normalization/) | 벡터 정규화 예제 |
+| [4. vector-normalization](examples/4.vector-normalization/) | 벡터 정규화 예제 | 
+| [5. prefix-sum-naive](examples/5.prefix-sum-naive/) | 누적합 예제 |
 
 ## 빌드 방법
 
@@ -28,7 +29,7 @@
      ```
    - OpenCL 지원 활성화:
      ```bash
-     cmake -S . -B ./build -DUSE_OpenCL=On
+     cmake -S . -B ./build -DUSE_OPENCL=On
      ```
 
 3. 컴파일:
@@ -36,7 +37,10 @@
    cd build && make
    ```
 
----
+빌드 결과 build/examples/number.lectur_name 의 형태로 디렉터리가 생성되고, 하위에 lecture_name_CUDA, lecture_name_OpenCL    
+실행 바이너리가 생성됩니다
+
+## 이 자료에 대하여
 기본적인 GPGPU에 필요한 내용을 다루기는 하지만 언어의 사용법 등을 상세히 설명하는 자료는 아닙니다.  
 CUDA 또는 OpenCL 등의 고급 사용법은 다른 자료를 찾아주세요.  
 이 레포지토리는 지속적으로 업데이트될 예정입니다.

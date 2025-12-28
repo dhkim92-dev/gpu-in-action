@@ -4,10 +4,11 @@ file(GLOB HELPERS_HEADERS
 )
 
 set(EXAMPLE_LISTS
-   "1.vector-add",
-   "2.reduce-sum",
+    "1.vector-add",
+    "2.reduce-sum",
     "3.dot-product",
-    "4.vector-normalization"
+    "4.vector-normalization",
+    "5.prefix-sum-naive",
 )
 
 foreach(EXAMPLE ${EXAMPLE_LISTS})
