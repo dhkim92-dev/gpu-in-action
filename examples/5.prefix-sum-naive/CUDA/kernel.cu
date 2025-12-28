@@ -2,7 +2,7 @@
 
 __device__ int scan1(
     int val,
-    __restrict__ int* cache
+    int* __restrict__ cache
 ) {
     int tid = threadIdx.x;
     cache[tid] = 0;
@@ -15,6 +15,7 @@ __device__ int scan1(
         __syncthreads();
         cache[tid] = t;
     }
+    return cache[tid];
 }
 
 __global__ void scan4(
@@ -25,16 +26,30 @@ __global__ void scan4(
 ) 
 {
     int id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= n) return;
     __shared__ int cache[128];
-    int4 data = src[id];
-    data.y += data.x;
-    data.z += data.y;
-    data.w += data.z;
+    
+    int4 data = make_int4(0, 0, 0, 0);
+    if (id < n) {
+        data = src[id];
+        data.y += data.x;
+        data.z += data.y;
+        data.w += data.z;
+    }
 
     int val = scan1(data.w, cache);
-    dst[id] = data + (int4)(val - data.w);
-
+    
+    if (id < n) {
+        int offset = val - data.w;
+        int4 result;
+        result.x = data.x + offset;
+        result.y = data.y + offset;
+        result.z = data.z + offset;
+        result.w = data.w + offset;
+        dst[id] = result;
+    }
+    
+    if (id == 0) gsum[0] = 0;
+    
     if (threadIdx.x == blockDim.x - 1) {
         gsum[blockIdx.x + 1] = val;
     }
@@ -48,8 +63,12 @@ __global__ void uniform_update(
     int id = blockIdx.x * blockDim.x + threadIdx.x;
     int gid = blockIdx.x;
     if (gid != 0) {
+        int sum = group_sums[gid];
         int4 val = output[id];
-        val += group_sums[gid];
+        val.x += sum;
+        val.y += sum;
+        val.z += sum;
+        val.w += sum;
         output[id] = val;
     }
 }
@@ -60,7 +79,7 @@ __global__ void scan_ed(
 ) 
 {
     int id = blockIdx.x * blockDim.x + threadIdx.x;
-    __shared__ int cache[];
+    extern __shared__ int cache[];
     int val = src[id];
     dst[id] = scan1(val, cache);
 }

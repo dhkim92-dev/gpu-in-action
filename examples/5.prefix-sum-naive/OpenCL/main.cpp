@@ -21,7 +21,7 @@ void init_sizes(
         d_grp_sums.push_back( clCreateBuffer(
             ctx,
             CL_MEM_READ_WRITE,
-            sizeof(int) * size,
+            sizeof(int) * (size + 1),
             nullptr,
             nullptr
         ));
@@ -33,6 +33,10 @@ void init_sizes(
         gszs.push_back( size );
         lszs.push_back( size );
     }
+
+    // for ( int i = 0 ; i < d_grp_sums.size() ; ++i ) {
+    //     LOG_DEBUG("d_grp_sums[%d] = %p\n", i, d_grp_sums[i]);
+    // }
 }
 
 void gpu_prefix_sum(
@@ -75,8 +79,7 @@ void gpu_prefix_sum(
             // scan4 
             const size_t global_work_size = gsz;
             const size_t local_work_size = lsz;
-            err  = clSetKernelArg(k_scan4, 0, sizeof(cl_mem), &d_src);
-            err |= clSetKernelArg(k_scan4, 1, sizeof(cl_mem), &d_dst);
+            err  = clSetKernelArg(k_scan4, 0, sizeof(cl_mem), &d_src);           err |= clSetKernelArg(k_scan4, 1, sizeof(cl_mem), &d_dst);
             err |= clSetKernelArg(k_scan4, 2, sizeof(cl_mem), &d_grp_sum);
             err |= clSetKernelArg(k_scan4, 3, sizeof(int), &limit);
             LOG_DEBUG("Enqueue scan4: \n\tgws=%zu, \n\tlws=%zu \n\tlimits : %d \n\td_dst: %p \n\td_src : %p", global_work_size, local_work_size, limit, d_dst, d_src);
@@ -123,15 +126,13 @@ void gpu_prefix_sum(
     for ( uint32_t i = d_grp_sums.size() - 1 ; i > 0 ; --i ) 
     {
         cl_mem d_dst = d_dsts[i - 1];
-        cl_mem d_grp_sum = d_grp_sums[i - 1];
         cl_mem d_src_sum = d_dsts[i];
         int32_t gsz = gszs[i - 1];
         int32_t lsz = lszs[i - 1];
-        int32_t limit = limits[i - 1];
         cl_int err = CL_SUCCESS;
 
         // uniform_update
-        const size_t global_work_size = gsz;
+        const size_t global_work_size = gsz / 4;  // int4 단위이므로 4로 나눔
         const size_t local_work_size = lsz;
         err  = clSetKernelArg(k_uniform_update, 0, sizeof(cl_mem), &d_dst);
         err |= clSetKernelArg(k_uniform_update, 1, sizeof(cl_mem), &d_src_sum);
@@ -238,6 +239,10 @@ int main(void)
     LOG_DEBUG("Initializing sizes...");
     init_sizes(context, d_grp_sums, gszs, lszs, limits, lsz, n);
 
+    BENCHMARK_START(host_prefixsum)
+    h_prefixsum(h_input, h_output_cpu, n);
+    BENCHMARK_END(host_prefixsum)
+
     BENCHMARK_START(gpu_prefix_sum)
     gpu_prefix_sum(
         queue,
@@ -252,11 +257,6 @@ int main(void)
         limits,
         n
     );
-    BENCHMARK_END(gpu_prefix_sum)
-
-    BENCHMARK_START(host_prefixsum)
-    h_prefixsum(h_input, h_output_cpu, n);
-    BENCHMARK_END(host_prefixsum)
 
     CHECK_CL_ERROR(clEnqueueReadBuffer(
         queue,
@@ -271,6 +271,7 @@ int main(void)
     ), "Failed to read output buffer");
     clFinish(queue);
     // Verify results
+    BENCHMARK_END(gpu_prefix_sum)
 
     bool match = true;
     for (int i = 0; i < n; ++i) {
@@ -281,6 +282,8 @@ int main(void)
             break;
         }
     }
+
+    LOG_INFO("Prefix sum %s", match ? "PASSED" : "FAILED");
 
     clReleaseKernel(k_scan4);
     clReleaseKernel(k_scan_ed);

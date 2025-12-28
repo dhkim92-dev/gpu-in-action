@@ -24,16 +24,21 @@ __kernel void scan4(
 ) 
 {
     int id = get_global_id(0);
-    if (id >= n) return;
-
-    int4 data = src[id];
     __local int cache[128];
-    data.y += data.x;
-    data.z += data.y;
-    data.w += data.z;
+    
+    int4 data = (int4)(0);
+    if (id < n) {
+        data = src[id];
+        data.y += data.x;
+        data.z += data.y;
+        data.w += data.z;
+    }
 
     int val = scan1(data.w, cache);
-    dst[id] = data + (int4)(val - data.w);
+    
+    if (id < n) {
+        dst[id] = data + (int4)(val - data.w);
+    }
     if (id == 0) gsum[0] = 0;
     if (get_local_id(0) == get_local_size(0) - 1) {
         gsum[get_group_id(0) + 1] = val;

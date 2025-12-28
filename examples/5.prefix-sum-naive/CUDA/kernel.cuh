@@ -3,7 +3,7 @@
 
 __device__ int scan1(
     int val,
-    __restrict__ int* cache
+    int* __restrict__ cache
 ); 
 
 __global__ void scan4(

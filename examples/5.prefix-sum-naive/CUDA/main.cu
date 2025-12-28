@@ -1,5 +1,6 @@
 #include "helper.hpp"
 #include "cuda_helper.hpp"
+#include "kernel.cuh"
 
 void h_prefix_sum(
     int* __restrict__ src,
@@ -21,7 +22,8 @@ void init_sizes(
     int sm,
     int n
 ) {
-    while ( n * 4 > sm) {
+    LOG_DEBUG("init_sizes start");
+    while ( n > sm * 4) {
         int gsz = (n + 3) / 4;
         int nr_blks = (gsz + sm - 1) / sm;
         limits.push_back(gsz);
@@ -29,7 +31,7 @@ void init_sizes(
         lszs.push_back(sm);
         n = nr_blks;
         int* d_grp = nullptr;
-        CUDA_CHECK(cudaMalloc((void**)&d_grp, sizeof(int) * n));
+        cuda_check(cudaMalloc((void**)&d_grp, sizeof(int) * (n + 1)), "Fail to malloc d_grp");
         d_grps.push_back(d_grp);
     }
 
@@ -39,6 +41,7 @@ void init_sizes(
         gszs.push_back(n);
         lszs.push_back(n);
     }
+    LOG_DEBUG("init_sizes end");
 }
 
 void gpu_prefix_sum(
@@ -54,23 +57,30 @@ void gpu_prefix_sum(
     std::vector<int*> d_srcs = { d_input };
     std::vector<int*> d_dsts = { d_output };
 
+    for ( auto d_grp : d_grps ) {
+        d_srcs.push_back(d_grp);
+        d_dsts.push_back(d_grp);
+    }
+
     for ( int i = 0 ; i < d_grps.size() ; ++i ) {
-        int* d_src = d_srcs[i];
-        int* d_dst = d_dsts[i];
         int* d_grp = d_grps[i];
         int gsz = gszs[i];
         int lsz = lszs[i];
         int limit = limits[i];
+        int* d_src = d_srcs[i];
+        int* d_dst = d_dsts[i];
 
         if ( d_grp != nullptr ) {
             int nr_blk = (gsz + lsz - 1) / lsz;
+            int4* d_src4 = reinterpret_cast<int4*>(d_src);
+            int4* d_dst4 = reinterpret_cast<int4*>(d_dst);
             scan4<<<nr_blk, lsz>>>(
-                reinterpret_cast<int4*>(d_src),
-                reinterpret_cast<int4*>(d_dst),
+                d_src4,
+                d_dst4,
                 d_grp,
                 limit
             );
-            cuda_check()
+            //cuda_check(cudaGetLastError(), "scan4 launch failed.");
         } else {
             int nr_blk = (limit + lsz - 1) / lsz;
             int sz_sm = sizeof(int) * lsz * 2;
@@ -78,21 +88,23 @@ void gpu_prefix_sum(
                 d_src,
                 d_dst
             );
+            //cuda_check(cudaGetLastError(), "scan_ed launch failed.");
         }
     }
 
     for ( int i = d_grps.size() - 1 ; i > 0 ; --i ) {
         int * d_dst = d_dsts[i-1];
-        int* d_grp = d_grps[i];
+        int* d_src_sum = d_dsts[i];  // use scanned result from previous level
         int gsz = gszs[i-1];
         int lsz = lszs[i-1];
         int limit = limits[i-1];
 
-        int nr_blk = (gsz + lsz - 1) / lsz;
+        int nr_blk = (gsz/4 + lsz - 1) / lsz;
         uniform_update<<<nr_blk, lsz>>>(
             reinterpret_cast<int4*>(d_dst),
-            d_grp
+            d_src_sum
         );  
+        // cuda_check(cudaGetLastError(), "uniform_update launch failed");
     }
 }
 
@@ -112,11 +124,10 @@ int main(void)
     std::vector<int> limits;
     std::vector<int*> d_grps;
 
-    cuda_check(cudaMalloc((void**)&d_input, sz_mem));
-    cuda_check(cudaMalloc((void**)&d_output, sz_mem));
-    cuda_check(cudaMemcpy(d_input, h_input, sz_mem, cudaMemcpyHostToDevice));
-    
     init_random_values_i32(h_input, n, 100);
+    cuda_check(cudaMalloc((void**)&d_input, sz_mem), "malloc failed, d_input");
+    cuda_check(cudaMalloc((void**)&d_output, sz_mem), "malloc failed, d_output");
+    cuda_check(cudaMemcpy(d_input, h_input, sz_mem, cudaMemcpyHostToDevice), "memcpy failed, h_input to d_input");
 
     BENCHMARK_START(host_prefix_sum)
     h_prefix_sum(h_input, h_output_cpu, n);
@@ -125,8 +136,8 @@ int main(void)
     init_sizes(gszs, lszs, limits, d_grps, sm, n);
     BENCHMARK_START(gpu_prefix_sum)
     gpu_prefix_sum(d_input, d_output, d_grps, gszs, lszs, limits, sm, n);
+    cuda_check(cudaMemcpy(h_output_gpu, d_output, sz_mem, cudaMemcpyDeviceToHost), "fail to memcpy to h_output_gpu from d_output");
     BENCHMARK_END(gpu_prefix_sum)
-    cuda_check(cudaMemcpy(h_output_gpu, d_output, sz_mem, cudaMemcpyDeviceToHost));
     // Verify results
     bool match = true;
     for (int i = 0; i < n; ++i) {
@@ -136,12 +147,13 @@ int main(void)
             break; 
         }
     }
+    LOG_INFO("Prefix sum %s", match ? "PASSED" : "FAILED");
 
-    cuda_check(cudaFree(d_input));
-    cuda_check(cudaFree(d_output));
+    cuda_check(cudaFree(d_input), "cudaFree failed");
+    cuda_check(cudaFree(d_output), "cudaFree failed");
     for (auto ptr : d_grps) {
         if (ptr != nullptr) {
-            cuda_check(cudaFree(ptr));
+            cuda_check(cudaFree(ptr), "cudaFree failed");
         }
     }
 
