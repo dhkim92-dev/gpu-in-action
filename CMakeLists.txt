@@ -19,6 +19,18 @@ if(NOT DEFINED LOG_LEVEL)
     set(LOG_LEVEL 1)  # INFO
 endif()
 
+# Disable warnings (MSVC: /W0, GCC/Clang: -w)
+# if(MSVC)
+#     add_compile_options(/W0)
+# else()
+#     add_compile_options(-w)
+# endif()
+
+# Silence nvcc (pass -w to host compiler and suppress device warnings)
+if(CMAKE_CUDA_COMPILER)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler=-w -w")
+endif()
+
 # =========================
 # Global backend interface
 # =========================

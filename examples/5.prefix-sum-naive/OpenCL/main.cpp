@@ -167,14 +167,14 @@ int main(void)
 {
     CL_CONTEXT_INIT
 
-    const int n = 1 << 20;  
+    const int n = 1 << 26;  
     const size_t sz_mem = sizeof(int) * n;
     const size_t lsz = 64;
     int* h_input = new int[n];
     int* h_output_gpu = new int[n];
     int* h_output_cpu = new int[n];
 
-    init_random_values_i32(h_input, n, 100);
+    init_random_values_i32(h_input, n, 8);
     // for (int i = 0; i < n; ++i) {
         // h_input[i] = 1; // simple case
     // }

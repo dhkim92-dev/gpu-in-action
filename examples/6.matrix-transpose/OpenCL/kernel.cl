@@ -58,11 +58,9 @@ __kernel void transpose_tiled_bank_conflict(
     barrier(CLK_LOCAL_MEM_FENCE);
 
     // Write transposed: output[x][y] = input[y][x]
-    // 타일 좌표를 전치하여 출력
-    int tx = gy * TILE_SIZE + lx;  // 출력의 col (원래 입력의 row 방향)
-    int ty = gx * TILE_SIZE + ly;  // 출력의 row (원래 입력의 col 방향)
+    int tx = gy * TILE_SIZE + lx;   
+    int ty = gx * TILE_SIZE + ly;  
 
-    // tile[lx][ly]를 읽을 때 bank conflict 발생 (같은 bank에서 읽음)
     if (tx < H && ty < W) {
         output[ty * H + tx] = tile[lx][ly];
     }

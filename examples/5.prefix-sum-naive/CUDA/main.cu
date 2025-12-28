@@ -110,7 +110,7 @@ void gpu_prefix_sum(
 
 int main(void)
 {
-    const int n = 1 << 20;
+    const int n = 1 << 26;
     const size_t sz_mem = sizeof(int) * n;
     const int sm = 64;
     int* h_input = new int[n];
@@ -124,7 +124,7 @@ int main(void)
     std::vector<int> limits;
     std::vector<int*> d_grps;
 
-    init_random_values_i32(h_input, n, 100);
+    init_random_values_i32(h_input, n, 8);
     cuda_check(cudaMalloc((void**)&d_input, sz_mem), "malloc failed, d_input");
     cuda_check(cudaMalloc((void**)&d_output, sz_mem), "malloc failed, d_output");
     cuda_check(cudaMemcpy(d_input, h_input, sz_mem, cudaMemcpyHostToDevice), "memcpy failed, h_input to d_input");
