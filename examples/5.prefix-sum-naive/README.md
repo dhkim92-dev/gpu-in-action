@@ -70,3 +70,7 @@
 
 
 ## 구현 예제
+| CUDA | OpenCL |
+|------|--------|
+|[CUDA 예제](./CUDA/main.cu) | [OpenCL 예제](./OpenCL/main.cpp) |
+---

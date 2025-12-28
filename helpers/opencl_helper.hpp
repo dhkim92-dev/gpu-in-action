@@ -81,6 +81,21 @@ inline void check_program_build_result(cl_int err, cl_program program, cl_device
     }
 }
 
+inline void fill_buffer(cl_command_queue queue, cl_mem buffer, int value, size_t size) {
+    std::vector<int> temp(size / sizeof(int), value);
+    CHECK_CL_ERROR(clEnqueueWriteBuffer(
+        queue,
+        buffer,
+        CL_TRUE,
+        0,
+        size,
+        temp.data(),
+        0,
+        nullptr,
+        nullptr
+    ), "Failed to fill buffer");
+}
+
 #define CL_CONTEXT_CLEANUP \
     clReleaseCommandQueue(queue); \
     clReleaseContext(context);

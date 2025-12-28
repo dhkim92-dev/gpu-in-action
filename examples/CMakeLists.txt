@@ -9,6 +9,7 @@ set(EXAMPLE_LISTS
     "3.dot-product",
     "4.vector-normalization",
     "5.prefix-sum-naive",
+    "6.matrix-transpose",
 )
 
 foreach(EXAMPLE ${EXAMPLE_LISTS})
