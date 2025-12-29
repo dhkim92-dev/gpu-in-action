@@ -8,6 +8,7 @@ __global__ void matmul_naive(
     uint32_t K,
     uint32_t N
 );
+
 __global__ void matmul_tiled(
     const float* __restrict__ A,
     const float* __restrict__ B,

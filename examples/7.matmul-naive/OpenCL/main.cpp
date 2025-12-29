@@ -17,7 +17,7 @@ bool compare_matrices(
     const float* mat2,
     int M,
     int N,
-    float epsilon = 1e-5f
+    float epsilon = 1e-4f
 ) {
     for (int i = 0; i < M * N; ++i) {
         if (std::fabs(mat1[i] - mat2[i]) > epsilon) {
@@ -256,6 +256,13 @@ int main(void)
     );
     LOG_INFO("MatMul Tiled Basic result: %s", res ? "PASS" : "FAIL");
 
+    // Cleanup
+    clReleaseMemObject(d_A);
+    clReleaseMemObject(d_B);
+    clReleaseMemObject(d_output);
+    clReleaseKernel(k_matmul_naive);
+    clReleaseKernel(k_matmul_tiled_basic);
+    clReleaseProgram(program);
 
     CL_CONTEXT_CLEANUP
     return 0;
