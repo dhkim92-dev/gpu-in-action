@@ -11,7 +11,8 @@
 | [3. dot-product](examples/3.dot-product/README.md) | 벡터 내적 예제 |
 | [4. vector-normalization](examples/4.vector-normalization/) | 벡터 정규화 예제 | 
 | [5. prefix-sum-naive](examples/5.prefix-sum-naive/) | 누적합 예제 |
-| [6. matrix-transpose](examples/6.matrix-transpose//) | 행렬 전치 예제 |
+| [6. matrix-transpose](examples/6.matrix-transpose/) | 행렬 전치 예제 |
+| [6. matmul-naive](examples/7.matmul-naive/) | 행렬곱 예제 |
 
 ## 빌드 방법
 

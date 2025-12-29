@@ -1,8 +1,44 @@
 [
 {
-  "directory": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/build/examples",
-  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/terrapin/workspace/personal/Graphics/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o -c /Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
-  "file": "/Users/terrapin/workspace/personal/Graphics/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
-  "output": "examples/CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o"
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/1.vector-add/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/vector-add_OPENCL.dir/1.vector-add/OpenCL/main.cpp.o"
+},
+{
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/reduce-sum_OPENCL.dir/2.reduce-sum/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/2.reduce-sum/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/2.reduce-sum/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/reduce-sum_OPENCL.dir/2.reduce-sum/OpenCL/main.cpp.o"
+},
+{
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/dot-product_OPENCL.dir/3.dot-product/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/3.dot-product/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/3.dot-product/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/dot-product_OPENCL.dir/3.dot-product/OpenCL/main.cpp.o"
+},
+{
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/vector-normalization_OPENCL.dir/4.vector-normalization/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/4.vector-normalization/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/4.vector-normalization/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/vector-normalization_OPENCL.dir/4.vector-normalization/OpenCL/main.cpp.o"
+},
+{
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/prefix-sum-naive_OPENCL.dir/5.prefix-sum-naive/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/5.prefix-sum-naive/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/5.prefix-sum-naive/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/prefix-sum-naive_OPENCL.dir/5.prefix-sum-naive/OpenCL/main.cpp.o"
+},
+{
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/matrix-transpose_OPENCL.dir/6.matrix-transpose/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/6.matrix-transpose/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/6.matrix-transpose/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/matrix-transpose_OPENCL.dir/6.matrix-transpose/OpenCL/main.cpp.o"
+},
+{
+  "directory": "/Users/aegis92/workspace/gpu-in-action/build",
+  "command": "/usr/bin/c++ -DLOG_LEVEL=1 -DUSE_OPENCL -I/System/Library/Frameworks/OpenCL.framework/Headers -I/Users/aegis92/workspace/gpu-in-action/helpers -std=gnu++17 -arch arm64 -o examples/CMakeFiles/matmul-naive_OPENCL.dir/7.matmul-naive/OpenCL/main.cpp.o -c /Users/aegis92/workspace/gpu-in-action/examples/7.matmul-naive/OpenCL/main.cpp",
+  "file": "/Users/aegis92/workspace/gpu-in-action/examples/7.matmul-naive/OpenCL/main.cpp",
+  "output": "/Users/aegis92/workspace/gpu-in-action/build/examples/CMakeFiles/matmul-naive_OPENCL.dir/7.matmul-naive/OpenCL/main.cpp.o"
 }
 ]

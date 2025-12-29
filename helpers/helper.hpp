@@ -10,6 +10,7 @@
 #include <numeric>
 #include <algorithm>
 #include <chrono>
+#include <memory>
 
 namespace gpgpu_detail {
     bool rand_seeded = false;
@@ -49,19 +50,20 @@ constexpr LogLevel CURRENT_LOG_LEVEL =
 // ============================
 // usage: BENCHMARK(foo());
 // prints: [BENCH][file:line] foo() : XX.XXX ms
-#define BENCHMARK(expr)                                                \
-    do {                                                               \
-        auto __bench_start =                                           \
-            std::chrono::high_resolution_clock::now();                 \
-        expr;                                                          \
-        auto __bench_end =                                             \
-            std::chrono::high_resolution_clock::now();                 \
-        double __bench_ms =                                            \
-            std::chrono::duration<double, std::milli>(                 \
-                __bench_end - __bench_start).count();                  \
-        std::printf("[BENCH][%s:%d] %s : %.3f ms\n",                   \
-            __FILE__, __LINE__, #expr, __bench_ms);                     \
-    } while (0)
+#define HOST_BENCHMARK(func, benchmark_name) {                       \
+    auto __host_bench_start_##benchmark_name =                        \
+        std::chrono::high_resolution_clock::now();                    \
+    func;                                                             \
+    auto __host_bench_end_##benchmark_name =                          \
+        std::chrono::high_resolution_clock::now();                    \
+    double __host_bench_ms_##benchmark_name =                         \
+        std::chrono::duration<double, std::milli>(                    \
+            __host_bench_end_##benchmark_name -                       \
+            __host_bench_start_##benchmark_name).count();             \
+    std::printf("[BENCH][%s:%d] %s : %.3f ms\n",                     \
+        __FILE__, __LINE__, #benchmark_name,                         \
+        __host_bench_ms_##benchmark_name);                           \
+}
 
 
 void init_random_values_f32(float* data, int size) 
@@ -111,3 +113,4 @@ inline void seed_rand_time()
     std::printf("[BENCH][%s:%d] %s : %.3f ms\n",                           \
         __FILE__, __LINE__, #func_name, __bench_ms_##func_name);            \
     }
+

@@ -27,15 +27,14 @@ void host_matrix_transpose(
  * @param width The width of the input matrix.
  * @param height The height of the input matrix.
  */
-void gpu_matrix_transpose(
+void gpu_matrix_transpose_naive(
     cl_command_queue queue,
     cl_kernel kernel,
     cl_mem d_input,
     cl_mem d_output,
     float* h_output_gpu,
     const int width,
-    const int height,
-    bool tiled = false
+    const int height
 ) {
     cl_int err = CL_SUCCESS;
     err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_input);
@@ -43,34 +42,17 @@ void gpu_matrix_transpose(
     err |= clSetKernelArg(kernel, 2, sizeof(int), &width);
     err |= clSetKernelArg(kernel, 3, sizeof(int), &height);
     CHECK_CL_ERROR(err, "Failed to set kernel args for matrix transpose");
-
-    if (tiled) {
-        const size_t local_work_size[2] = {16, 16};
-        const size_t global_work_size[2] = {
-            static_cast<size_t>((width + 15) / 16) * 16,
-            static_cast<size_t>((height + 15) / 16) * 16
-        };
-        LOG_DEBUG("Enqueue tiled matrix transpose: \n\tgws=(%zu, %zu), \n\tlws=(%zu, %zu) \n\td_output: %p \n\td_input : %p", 
-            global_work_size[0], global_work_size[1],
-            local_work_size[0], local_work_size[1],
-            d_output, d_input);
-        CHECK_CL_ERROR(clEnqueueNDRangeKernel(
-            queue,
-            kernel,
-            2,
-            nullptr,
-            global_work_size,
-            local_work_size,
-            0,
-            nullptr,
-            nullptr
-        ), "Failed to enqueue tiled matrix transpose");
-    } else {
-        const size_t global_work_size[2] = {
-            static_cast<size_t>(width),
-            static_cast<size_t>(height)
-        };
-        CHECK_CL_ERROR(clEnqueueNDRangeKernel(
+    cl_event benchmark_event;
+    const size_t global_work_size[2] = {
+        static_cast<size_t>(width),
+        static_cast<size_t>(height)
+    };
+    LOG_DEBUG("Enqueue naive matrix transpose: \n\tgws=(%zu, %zu) \n\td_output: %p \n\td_input : %p", 
+        global_work_size[0], global_work_size[1],
+        d_output, d_input);
+    
+    CL_BENCHMARK(
+        clEnqueueNDRangeKernel(
             queue,
             kernel,
             2,
@@ -79,9 +61,10 @@ void gpu_matrix_transpose(
             nullptr,
             0,
             nullptr,
-            nullptr
-        ), "Failed to enqueue naive matrix transpose");
-    }
+            &benchmark_event
+        ), 
+        gpu_matrix_transpose_naive, 
+        benchmark_event);
     CHECK_CL_ERROR(clEnqueueReadBuffer(
         queue,
         d_output,
@@ -96,6 +79,101 @@ void gpu_matrix_transpose(
 
     clFinish(queue);
 }
+
+void gpu_matrix_transpose_tiled_bank_conflict(
+    cl_command_queue queue,
+    cl_kernel kernel,
+    cl_mem d_input,
+    cl_mem d_output,
+    float* h_output_gpu,
+    const int width,
+    const int height
+) {
+    cl_int err = CL_SUCCESS;
+    err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_input);
+    err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_output);
+    err |= clSetKernelArg(kernel, 2, sizeof(int), &width);
+    err |= clSetKernelArg(kernel, 3, sizeof(int), &height);
+    CHECK_CL_ERROR(err, "Failed to set kernel args for matrix transpose");
+    cl_event benchmark_event;
+    const size_t local_work_size[2] = {16, 16};
+    const size_t global_work_size[2] = {
+        static_cast<size_t>((width + 15) / 16) * 16,
+        static_cast<size_t>((height + 15) / 16) * 16
+    };
+    CL_BENCHMARK(clEnqueueNDRangeKernel(
+        queue,
+        kernel,
+        2,
+        nullptr,
+        global_work_size,
+        local_work_size,
+        0,
+        nullptr,
+        &benchmark_event
+    ), gpu_matrix_transpose_tiled_bank_conflict, benchmark_event);
+    CHECK_CL_ERROR(clEnqueueReadBuffer(
+        queue,
+        d_output,
+        CL_TRUE,
+        0,
+        sizeof(float) * width * height,
+        h_output_gpu,
+        0,
+        nullptr,
+        nullptr
+    ), "Failed to read back output matrix");
+
+    clFinish(queue);
+}
+
+void gpu_matrix_transpose_tiled_optimized(
+    cl_command_queue queue,
+    cl_kernel kernel,
+    cl_mem d_input,
+    cl_mem d_output,
+    float* h_output_gpu,
+    const int width,
+    const int height
+) {
+    cl_int err = CL_SUCCESS;
+    err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_input);
+    err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_output);
+    err |= clSetKernelArg(kernel, 2, sizeof(int), &width);
+    err |= clSetKernelArg(kernel, 3, sizeof(int), &height);
+    CHECK_CL_ERROR(err, "Failed to set kernel args for matrix transpose");
+    cl_event benchmark_event;
+    const size_t local_work_size[2] = {16, 16};
+    const size_t global_work_size[2] = {
+        static_cast<size_t>((width + 15) / 16) * 16,
+        static_cast<size_t>((height + 15) / 16) * 16
+    };
+    CL_BENCHMARK(clEnqueueNDRangeKernel(
+        queue,
+        kernel,
+        2,
+        nullptr,
+        global_work_size,
+        local_work_size,
+        0,
+        nullptr,
+        &benchmark_event
+    ), gpu_matrix_transpose_optimized, benchmark_event);
+    CHECK_CL_ERROR(clEnqueueReadBuffer(
+        queue,
+        d_output,
+        CL_TRUE,
+        0,
+        sizeof(float) * width * height,
+        h_output_gpu,
+        0,
+        nullptr,
+        nullptr
+    ), "Failed to read back output matrix");
+
+    clFinish(queue);
+}
+
 
 bool compare_result(const float* ref, const float* res, int size) 
 {
@@ -203,8 +281,7 @@ int main(void)
     BENCHMARK_END(cpu_matrix_transpose);
     // print_matrix(h_output_cpu, height, width, "host_transposed_matrix");
 
-    BENCHMARK_START(gpu_matrix_transpose_naive)
-    gpu_matrix_transpose(
+    gpu_matrix_transpose_naive(
         queue,
         k_transpose,
         d_input,
@@ -213,43 +290,36 @@ int main(void)
         width,
         height
     );
-    BENCHMARK_END(gpu_matrix_transpose_naive);
     // print_matrix(h_output_gpu, height, width, "gpu_transposed_matrix_naive");
     compare_result(h_output_cpu, h_output_gpu, width * height);
     memset(h_output_gpu, 0, sz_mem);
     fill_buffer(queue, d_output, 0, sz_mem);
     clFinish(queue);
 
-    BENCHMARK_START(gpu_matrix_transpose_tiled_bank_conflict)
-    gpu_matrix_transpose(
+    gpu_matrix_transpose_tiled_bank_conflict(
         queue,
         k_transpose_tiled_bank_conflict,
         d_input,
         d_output,
         h_output_gpu,
         width,
-        height,
-        true
+        height
     );
-    BENCHMARK_END(gpu_matrix_transpose_tiled_bank_conflict)
     // print_matrix(h_output_gpu, height, width, "gpu_transposed_matrix_tiled_bank_conflict");
     compare_result(h_output_cpu, h_output_gpu, width * height);
     memset(h_output_gpu, 0, sz_mem);
     fill_buffer(queue, d_output, 0, sz_mem);
     clFinish(queue);
 
-    BENCHMARK_START(gpu_matrix_transpose_tiled_optimized)
-    gpu_matrix_transpose(
+    gpu_matrix_transpose_tiled_optimized(
         queue,
         k_transpose_tiled_optimized,
         d_input,
         d_output,
         h_output_gpu,
         width,
-        height,
-        true
+        height
     );
-    BENCHMARK_END(gpu_matrix_transpose_tiled_optimized);
     // print_matrix(h_output_gpu, height, width, "gpu_transposed_matrix_tiled_optimized");
     compare_result(h_output_cpu, h_output_gpu, width * height);
     fill_buffer(queue, d_output, 0, sz_mem);
