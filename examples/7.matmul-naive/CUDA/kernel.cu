@@ -17,16 +17,16 @@ __global__ void matmul_naive(
     const float* __restrict__ A,
     const float* __restrict__ B,
     float* __restrict__ C,
-    uint32_t M,
-    uint32_t K,
-    uint32_t N
+    unsigned int M,
+    unsigned int K,
+    unsigned int N
 ) {
-    uint32_t row = blockIdx.y * blockDim.y + threadIdx.y;
-    uint32_t col = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int row = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int col = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (row < M && col < N) {
         float value = 0.0f;
-        for (uint32_t k = 0; k < K; ++k) {
+        for (unsigned int k = 0; k < K; ++k) {
             value += A[row * K + k] * B[k * N + col];
         }
         C[row * N + col] = value;
@@ -37,24 +37,24 @@ __global__ void matmul_tiled(
     const float* __restrict__ A,
     const float* __restrict__ B,
     float* __restrict__ C,
-    uint32_t M,
-    uint32_t K,
-    uint32_t N
+    unsigned int M,
+    unsigned int K,
+    unsigned int N
 ) {
     __shared__ float sub_A[16][16];
     __shared__ float sub_B[16][16];
 
-    uint32_t row = blockIdx.y * blockDim.y + threadIdx.y;
-    uint32_t col = blockIdx.x * blockDim.x + threadIdx.x;
-    uint32_t l_row = threadIdx.y;
-    uint32_t l_col = threadIdx.x;
+    unsigned int row = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int col = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int l_row = threadIdx.y;
+    unsigned int l_col = threadIdx.x;
     float value = 0.0f;
 
     sub_A[l_row][l_col] = 0.0f;
     sub_B[l_row][l_col] = 0.0f;
     
     // load tiles 
-    for (uint32_t t = 0; t < (K + 16 - 1) / 16; ++t) {
+    for (unsigned int t = 0; t < (K + 16 - 1) / 16; ++t) {
         if (row < M && t * 16 + l_col < K) {
             sub_A[l_row][l_col] = A[row * K + t * 16 + l_col];
         } else {
@@ -67,7 +67,7 @@ __global__ void matmul_tiled(
         }
         __syncthreads();
 
-        for (uint32_t k = 0; k < 16; ++k) {
+        for (unsigned int k = 0; k < 16; ++k) {
             value += sub_A[l_row][k] * sub_B[k][l_col];
         }
         __syncthreads();
