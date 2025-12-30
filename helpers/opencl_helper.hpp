@@ -11,6 +11,11 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <type_traits>
+
+// Wrapper type to indicate a local-memory size argument for clSetKernelArg
+struct cl_local_mem { size_t size; };
+inline cl_local_mem SZ_LMEM(size_t s) { return cl_local_mem{s}; }
 
 
 const char* get_cl_error_string(cl_int err) {
@@ -115,8 +120,17 @@ inline void fill_buffer(cl_command_queue queue, cl_mem buffer, int value, size_t
 template <typename... Args>
 void cl_set_kernel_args(cl_kernel kernel, Args&&... args) {
     size_t idx = 0;
+    // local memory wrapper is represented by `cl_local_mem` and created with `SZ_LMEM(size)`
+
     auto set_arg = [&](auto&& arg) {
-        cl_int err = clSetKernelArg(kernel, idx++, sizeof(arg), &arg);
+        using T = std::decay_t<decltype(arg)>;
+        cl_int err = CL_SUCCESS;
+        if constexpr (std::is_same_v<T, cl_local_mem>) {
+            // local memory: pass size and NULL pointer
+            err = clSetKernelArg(kernel, idx++, arg.size, nullptr);
+        } else {
+            err = clSetKernelArg(kernel, idx++, sizeof(arg), &arg);
+        }
         CHECK_CL_ERROR(err, "clSetKernelArg");
     };
     (set_arg(std::forward<Args>(args)), ...);
