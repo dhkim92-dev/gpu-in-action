@@ -56,25 +56,28 @@ void gpu_conv2d_naive(
     float * h_output_gpu
 ) {
     // kernel signature: (input, output, filter, W, H, FW, FH)
-    cl_set_kernel_args(kernel, d_input, d_output, d_filter, W, H, FW, FH);
     const size_t sz_global[2] = {
         static_cast<size_t>((W + 15) / 16) * 16,
         static_cast<size_t>((H + 15) / 16) * 16
     };
     const size_t sz_local[2] = {16, 16};
     cl_event benchmark_event;
-    CL_BENCHMARK(clEnqueueNDRangeKernel(
-        queue,
-        kernel,
-        2,
-        nullptr,
-        sz_global,
-        sz_local,
-        0,
-        nullptr,
-        &benchmark_event
-    ), gpu_conv2d_naive, benchmark_event);
-
+    cl_set_kernel_args(kernel, d_input, d_output, d_filter, W, H, FW, FH);
+    CL_BENCHMARK(
+        clEnqueueNDRangeKernel(
+            queue,
+            kernel,
+            2,
+            nullptr,
+            sz_global,
+            sz_local,
+            0,
+            nullptr,
+            &benchmark_event
+        ),
+        device_conv2d_naive,
+        benchmark_event
+    );
     CHECK_CL_ERROR(clEnqueueReadBuffer(
         queue,
         d_output,
@@ -106,22 +109,24 @@ void gpu_conv2d_tiled(
         static_cast<size_t>((H + 15) / 16) * 16
     };
     const size_t sz_local[2] = {16, 16};
-    cl_event benchmark_event;
     const size_t sz_shm = (16 + FW - 1) * (16 + FH - 1) * sizeof(float); // local mem size
-    // kernel signature: (input, output, filter, __local tile, __local l_filter, W, H, FW, FH)
     cl_set_kernel_args(kernel, d_input, d_output, d_filter, SZ_LMEM(sz_shm), SZ_LMEM(FW * FH * sizeof(float)), W, H, FW, FH);
-    CL_BENCHMARK(clEnqueueNDRangeKernel(
-        queue,
-        kernel,
-        2,
-        nullptr,
-        sz_global,
-        sz_local,
-        0,
-        nullptr,
-        &benchmark_event
-    ), gpu_conv2d_tiled, benchmark_event);
-
+    cl_event benchmark_event;
+    CL_BENCHMARK(
+        clEnqueueNDRangeKernel(
+            queue,
+            kernel,
+            2,
+            nullptr,
+            sz_global,
+            sz_local,
+            0,
+            nullptr,
+            &benchmark_event
+        ),
+        device_conv2d_tiled,
+        benchmark_event
+    );
     CHECK_CL_ERROR(clEnqueueReadBuffer(
         queue,
         d_output,
@@ -139,6 +144,20 @@ void gpu_conv2d_tiled(
 int main(void)
 {
     CL_CONTEXT_INIT
+
+    // Debug: print OpenCL platform/device info
+    {
+        size_t sz = 0;
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, nullptr, &sz);
+        std::vector<char> pname(sz);
+        clGetPlatformInfo(platform, CL_PLATFORM_NAME, sz, pname.data(), nullptr);
+        clGetDeviceInfo(device, CL_DEVICE_NAME, 0, nullptr, &sz);
+        std::vector<char> dname(sz);
+        clGetDeviceInfo(device, CL_DEVICE_NAME, sz, dname.data(), nullptr);
+        cl_device_type dtype = 0;
+        clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(dtype), &dtype, nullptr);
+        std::printf("[DEBUG] OpenCL platform=%s device=%s type=0x%llx\n", pname.data(), dname.data(), (unsigned long long)dtype);
+    }
 
     const int W = 1024;
     const int H = 1024;
@@ -206,6 +225,16 @@ int main(void)
     );
     CHECK_CL_ERROR(err, "Failed to create kernel for conv2d_tiled");
 
+    // Debug: print kernel function names and kernel handles to ensure distinct kernels
+    {
+        char namebuf[256];
+        size_t ret = 0;
+        clGetKernelInfo(k_conv2d_naive, CL_KERNEL_FUNCTION_NAME, sizeof(namebuf), namebuf, &ret);
+        std::printf("[DEBUG] k_conv2d_naive handle=%p name=%s\n", (void*)k_conv2d_naive, namebuf);
+        clGetKernelInfo(k_conv2d_tiled, CL_KERNEL_FUNCTION_NAME, sizeof(namebuf), namebuf, &ret);
+        std::printf("[DEBUG] k_conv2d_tiled handle=%p name=%s\n", (void*)k_conv2d_tiled, namebuf);
+    }
+
     clEnqueueWriteBuffer(
         queue,
         d_input,
@@ -229,7 +258,6 @@ int main(void)
         nullptr,
         nullptr
     );
-    clFinish(queue);
 
     HOST_BENCHMARK(
         h_conv2d(

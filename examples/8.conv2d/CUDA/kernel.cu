@@ -3,7 +3,7 @@
 __global__ void conv2d_naive(
     const float* input,
     float* output,
-    float* filter, 
+    const float* filter, 
     int W,
     int H,
     int KW,
@@ -11,33 +11,39 @@ __global__ void conv2d_naive(
 ) {
     int r = blockIdx.y * blockDim.y + threadIdx.y;
     int c = blockIdx.x * blockDim.x + threadIdx.x;
-
+    float sum = 0.0f;
     for (  int fr = 0; fr < KH; fr++) {
         for (int fc = 0; fc < KW; fc++) {
             int in_r = r + fr - KH / 2;
             int in_c = c + fc - KW / 2;
             if (in_r >= 0 && in_r < H && in_c >= 0 && in_c < W) {
-                output[r * W + c] += input[in_r * W + in_c] * filter[fr * KW + fc];
+                sum += input[in_r * W + in_c] * filter[fr * KW + fc];
             }
         }
+    }
+    if (r < H && c < W) {
+        output[r * W + c] = sum;
     }
 }
 
 __global__ void conv2d_tiled(
     const float* input,
     float* output,
-    float* filter, 
+    const float* filter, 
     int W,
     int H,
     int KW,
     int KH
 ) {
-    extern __shared__ float* tile;
-    extern __shared__ float* shm_filter;
+    extern __shared__ float s_shm[];
     int tr = threadIdx.y;
     int tc = threadIdx.x;
     int r = blockIdx.y * blockDim.y + tr;
     int c = blockIdx.x * blockDim.x + tc;
+    int tile_rows = blockDim.y + KH - 1;
+    int tile_cols = blockDim.x + KW - 1;
+    float* tile = s_shm;
+    float* shm_filter = s_shm + tile_rows * tile_cols;
 
     // Load input to shared memory tile
     for (int i = tr; i < blockDim.y + KH - 1; i += blockDim.y) {

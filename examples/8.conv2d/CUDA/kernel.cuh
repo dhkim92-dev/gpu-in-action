@@ -2,8 +2,8 @@
 
 __global__ void conv2d_naive(
     const float* input,
-    const float* output,
-    float* filter, 
+    float* output,
+    const float* filter, 
     int W,
     int H,
     int KW,
@@ -13,7 +13,7 @@ __global__ void conv2d_naive(
 __global__ void conv2d_tiled(
     const float* input,
     float* output,
-    float* filter, 
+    const float* filter, 
     int W,
     int H,
     int KW,

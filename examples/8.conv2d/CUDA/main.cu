@@ -25,7 +25,7 @@ void h_conv2d(
     const int W,
     const int H,
     const int FW,
-    const int FH,
+    const int FH
 ) {
     for (int y = 0; y < H; ++y) {
         for (int x = 0; x < W; ++x) {
@@ -69,12 +69,12 @@ void gpu_conv2d_naive(
             FH
         )
     );
-    CUDA_CHECK(cudaMemcpy(
+    cuda_check(cudaMemcpy(
         h_output,
         d_output,
         W * H * sizeof(float),
         cudaMemcpyDeviceToHost
-    ));
+    ), "Failed to copy d_output to h_output");
     cudaDeviceSynchronize();
 }
 
@@ -105,12 +105,12 @@ void gpu_conv2d_tiled(
             FH
         )
     );
-    CUDA_CHECK(cudaMemcpy(
+    cuda_check(cudaMemcpy(
         h_output,
         d_output,
         W * H * sizeof(float),
         cudaMemcpyDeviceToHost
-    ));
+    ), "Failed to copy d_output to h_output");
     cudaDeviceSynchronize();
 }
 
@@ -136,12 +136,12 @@ int main(void)
     float *d_filter = nullptr;
     float *d_output = nullptr;
 
-    CUDA_CHECK(cudaMalloc((void**)&d_input, sz_input));
-    CUDA_CHECK(cudaMalloc((void**)&d_filter, sz_filter));
-    CUDA_CHECK(cudaMalloc((void**)&d_output, sz_output));
+    cuda_check(cudaMalloc((void**)&d_input, sz_input), "Failed to allocate d_input");
+    cuda_check(cudaMalloc((void**)&d_filter, sz_filter), "Failed to allocate d_filter");
+    cuda_check(cudaMalloc((void**)&d_output, sz_output), "Failed to allocate d_output");
 
-    CUDA_CHECK(cudaMemcpy(d_input, h_input.get(), sz_input, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_filter, h_filter.get(), sz_filter, cudaMemcpyHostToDevice));
+    cuda_check(cudaMemcpy(d_input, h_input.get(), sz_input, cudaMemcpyHostToDevice), "Failed to copy h_input to d_input");
+    cuda_check(cudaMemcpy(d_filter, h_filter.get(), sz_filter, cudaMemcpyHostToDevice), "Failed to copy h_filter to d_filter");
 
     HOST_BENCHMARK(
         h_conv2d(
@@ -152,7 +152,7 @@ int main(void)
             H,
             FW,
             FH
-        ),  cpu_conv2d
+        ), cpu_conv2d
     );
 
     gpu_conv2d_naive(
@@ -189,8 +189,8 @@ int main(void)
     );
     LOG_INFO("GPU Tiled Conv2D correctness: %s", correct ? "PASSED" : "FAILED");
 
-    CUDA_CHECK(cudaFree(d_input));
-    CUDA_CHECK(cudaFree(d_filter));
-    CUDA_CHECK(cudaFree(d_output));
+    cuda_check(cudaFree(d_input), "Failed to free d_input");
+    cuda_check(cudaFree(d_filter), "Failed to free d_filter");
+    cuda_check(cudaFree(d_output), "Failed to free d_output");
     return 0;
 }

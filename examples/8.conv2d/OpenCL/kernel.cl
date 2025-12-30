@@ -22,27 +22,25 @@ __kernel void conv2d_naive(
     const int FW,
     const int FH
 ) {
-    int out_x = get_global_id(0); // output column index
-    int out_y = get_global_id(1); // output row index
+    int r = get_global_id(1); // row index
+    int c = get_global_id(0); // column index
     float sum = 0.0f;
 
-    // Convolution operation
-    for (int fy = 0; fy < FH; fy++) {
-        for (int fx = 0; fx < FW; fx++) {
-            int in_x = out_x + fx - FW / 2;
-            int in_y = out_y + fy - FH / 2;
-            // Boundary check
-            if (in_x >= 0 && in_x < W && in_y >= 0 && in_y < H) {
-                float in_val = input[in_y * W + in_x];
-                float filter_val = filter[fy * FW + fx];
-                sum += in_val * filter_val;
+    // do convolution
+    for ( int fr = 0; fr < FH; fr++) {
+        for (int fc = 0; fc < FW; fc++) {
+            int in_r = r + fr - FH / 2;
+            int in_c = c + fc - FW / 2;
+            if (in_r >= 0 && in_r < H && in_c >= 0 && in_c < W) {
+                sum += input[in_r * W + in_c] * filter[fr * FW + fc];
             }
         }
     }
+
     // Write output
-    if (out_x < W && out_y < H) {
-        output[out_y * W + out_x] = sum;
-    } 
+    if (c < W && r < H) {
+        output[r * W + c] = sum;
+    }
 }
 
 /**

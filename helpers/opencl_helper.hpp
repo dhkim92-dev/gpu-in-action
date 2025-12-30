@@ -107,11 +107,11 @@ inline void fill_buffer(cl_command_queue queue, cl_mem buffer, int value, size_t
 
 #define CL_BENCHMARK(func_call, benchmark_name, event) { \
     cl_ulong start_time_##benchmark_name, end_time_##benchmark_name; \
-    /* caller must provide a cl_event variable named `benchmark_event` and pass its address into `func_call` */ \
+    /* func_call should enqueue the command and store the event into the variable named by `event` */ \
     CHECK_CL_ERROR(func_call, #benchmark_name); \
-    CHECK_CL_ERROR(clWaitForEvents(1, &benchmark_event), "Failed to wait for event"); \
-    CHECK_CL_ERROR(clGetEventProfilingInfo(benchmark_event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start_time_##benchmark_name, nullptr), "Failed to get profiling info"); \
-    CHECK_CL_ERROR(clGetEventProfilingInfo(benchmark_event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end_time_##benchmark_name, nullptr), "Failed to get profiling info"); \
+    CHECK_CL_ERROR(clWaitForEvents(1, &(event)), "Failed to wait for event"); \
+    CHECK_CL_ERROR(clGetEventProfilingInfo((event), CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start_time_##benchmark_name, nullptr), "Failed to get profiling info"); \
+    CHECK_CL_ERROR(clGetEventProfilingInfo((event), CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end_time_##benchmark_name, nullptr), "Failed to get profiling info"); \
     double elapsed_time_##benchmark_name = (end_time_##benchmark_name - start_time_##benchmark_name) * 1e-6; /* Convert to milliseconds */ \
     std::printf("[BENCH][%s:%d] %s : %.3f ms\n", __FILE__, __LINE__, #benchmark_name, elapsed_time_##benchmark_name); \
     clReleaseEvent(event); \
